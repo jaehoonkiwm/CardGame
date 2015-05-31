@@ -8,34 +8,37 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 /**
  * Created by iao on 15. 5. 28.
  */
 public class ImageAdapter extends BaseAdapter {
+	private static final int BACK_IMG = R.drawable.backimg;
+	private static final int CLICKED_IMG = R.drawable.clickedbackimg;
     private Context context;
     private DisplayMetrics mMetrics;
     private int row;
     private int col;
 
     private int[] imges;
-    private int[] frontimages;
+    private int[] frontimages = {R.drawable.junghwa, R.drawable.junghwa2, R.drawable.junghwa3,
+                                R.drawable.junghwa, R.drawable.junghwa2, R.drawable.junghwa3};
     private boolean[] isClicked;
     private boolean[] isOpened;
-    private int selectedImg1 = 0;
-    private int selectedImg2 = 0;
-
+    private int selectedPos1 = -1;
+    private int selectedPos2 = -1;
 
     public ImageAdapter(Context context, DisplayMetrics mMetrics, int cntCard) {
         this.context = context;
         this.mMetrics = mMetrics;
         this.imges = new int[cntCard];
-        this.frontimages = new int[cntCard];
+        //this.frontimages = new int[cntCard];
         this.isClicked = new boolean[cntCard];
         this.isOpened = new boolean[cntCard];
 
         for (int i = 0; i != imges.length; ++i) {
-            this.imges[i] = R.drawable.backimg;
+            this.imges[i] = BACK_IMG;
             this.isClicked[i] = false;
             this.isOpened[i] = false;
         }
@@ -44,7 +47,7 @@ public class ImageAdapter extends BaseAdapter {
         setRowCol(cntCard);
     }
 
-    private void setRowCol(int cnt){
+    private void setRowCol(int cnt){            // 카드 개수에 따라 열과 행을 설
         if (cnt == 6){
             this.row = 2;
             this.col = 3;
@@ -57,28 +60,38 @@ public class ImageAdapter extends BaseAdapter {
         }
     }
 
-    public void itemClicked(int position){
-        if (isClicked[position]){
-            isClicked[position] = false;
-            imges[position] = R.drawable.backimg;
-        } else{
-            isClicked[position] = true;
-            imges[position] = R.drawable.clickedbackimg;
-            if (selectedImg1 == 0)
-                selectedImg1 = frontimages[position];
-            else
-                selectedImg2 = frontimages[position];
-        }
+	//
+    public void itemClicked(int position){      // 카드가 눌렸을때
+	    if (isOpened[position] == false) {
+		    if (isClicked[position]) {
+			    isClicked[position] = false;
+			    imges[position] = BACK_IMG;
+			    selectedPos1 = -1;
+		    } else {
+			    isClicked[position] = true;
+			    imges[position] = CLICKED_IMG;
+
+			    if (selectedPos1 == -1)
+				    selectedPos1 = position;
+			    else {
+				    selectedPos2 = position;
+				    openTwoCards();
+			    }
+		    }
+	    }
     }
 
-    public boolean isSelectedTwoCards(){
-        int cnt = 0;
-        for (int i = 0; i < isClicked.length; ++i)
-            if (isClicked[i] == true)
-                cnt++;
-        if (cnt == 2)
-            return true;
-        return false;
+    public void openTwoCards(){
+		imges[selectedPos1] = frontimages[selectedPos1];
+	    imges[selectedPos2] = frontimages[selectedPos2];
+
+	    this.notifyDataSetChanged();
+
+	    if (isMatched(frontimages[selectedPos1], frontimages[selectedPos2]))
+		    Toast.makeText(context, "일치", Toast.LENGTH_SHORT).show();
+	    else{
+		    Toast.makeText(context, "불일치", Toast.LENGTH_SHORT).show();
+	    }
     }
 
     public boolean isMatched(int img1, int img2){
@@ -95,9 +108,11 @@ public class ImageAdapter extends BaseAdapter {
 
     public void clearSelected(){
         for (int i = 0; i < isClicked.length; ++i)
-            if (isClicked[i] == true) {
+            if (isOpened[i] == false && isClicked[i] == true) {
                 isClicked[i] = false;
-                imges[i] = R.drawable.backimg;
+                imges[i] = BACK_IMG;
+	         //   selectedImg1 = 0;
+	           // selectedImg2 = 0;
             }
     }
 

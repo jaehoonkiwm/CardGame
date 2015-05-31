@@ -56,11 +56,6 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
 
         imageAdapter.itemClicked(position);
 
-        if (imageAdapter.isSelectedTwoCards()){
-            Toast.makeText(this, "카드 2장 선택했음", Toast.LENGTH_SHORT).show();
-
-        }
-
 
         imageAdapter.notifyDataSetChanged();
     }
