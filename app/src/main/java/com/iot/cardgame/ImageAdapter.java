@@ -111,8 +111,6 @@ public class ImageAdapter extends BaseAdapter {
             if (isOpened[i] == false && isClicked[i] == true) {
                 isClicked[i] = false;
                 imges[i] = BACK_IMG;
-	         //   selectedImg1 = 0;
-	           // selectedImg2 = 0;
             }
     }
 
