@@ -1,6 +1,8 @@
 package com.iot.cardgame;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +16,12 @@ import android.widget.Toast;
  * Created by iao on 15. 5. 28.
  */
 public class ImageAdapter extends BaseAdapter {
-	private static final int BACK_IMG = R.drawable.backimg;
-	private static final int CLICKED_IMG = R.drawable.clickedbackimg;
+	private static final int BACK_IMAGE = R.drawable.backimg;
+	private static final int CLICKED_IMAGE = R.drawable.clickedbackimg;
+
+	private static final int IMAGE_IS_MACHED = 1;
+	private static final int IMAGE_IS_NOT_MACHED = 0;
+
     private Context context;
     private DisplayMetrics mMetrics;
     private int row;
@@ -38,7 +44,7 @@ public class ImageAdapter extends BaseAdapter {
         this.isOpened = new boolean[cntCard];
 
         for (int i = 0; i != imges.length; ++i) {
-            this.imges[i] = BACK_IMG;
+            this.imges[i] = BACK_IMAGE;
             this.isClicked[i] = false;
             this.isOpened[i] = false;
         }
@@ -65,11 +71,11 @@ public class ImageAdapter extends BaseAdapter {
 	    if (isOpened[position] == false) {
 		    if (isClicked[position]) {
 			    isClicked[position] = false;
-			    imges[position] = BACK_IMG;
+			    imges[position] = BACK_IMAGE;
 			    selectedPos1 = -1;
 		    } else {
 			    isClicked[position] = true;
-			    imges[position] = CLICKED_IMG;
+			    imges[position] = CLICKED_IMAGE;
 
 			    if (selectedPos1 == -1)
 				    selectedPos1 = position;
@@ -87,14 +93,37 @@ public class ImageAdapter extends BaseAdapter {
 
 	    this.notifyDataSetChanged();
 
-	    if (isMatched(frontimages[selectedPos1], frontimages[selectedPos2]))
-		    Toast.makeText(context, "일치", Toast.LENGTH_SHORT).show();
-	    else{
-		    Toast.makeText(context, "불일치", Toast.LENGTH_SHORT).show();
-	    }
+	    new Handler().postDelayed(new Runnable() {
+		    @Override
+		    public void run() {
+			    if (isCardsMatched(frontimages[selectedPos1], frontimages[selectedPos2])) {
+				    handler.sendEmptyMessage(1);
+
+			    } else{
+				    handler.sendEmptyMessage(0);
+			    }
+		    }
+	    }, 500);
+
     }
 
-    public boolean isMatched(int img1, int img2){
+	Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			if (msg.what == IMAGE_IS_MACHED){
+				isOpened[selectedPos1] = true;
+				isOpened[selectedPos2] = true;
+				Toast.makeText(context, "일치", Toast.LENGTH_SHORT).show();
+			} else if (msg.what == IMAGE_IS_NOT_MACHED){
+				Toast.makeText(context, "불일치", Toast.LENGTH_SHORT).show();
+				imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
+			}
+			clearSelectedCards();
+		}
+	};
+
+    public boolean isCardsMatched(int img1, int img2){
         if (img1 == img2)
             return true;
         return false;
@@ -106,12 +135,15 @@ public class ImageAdapter extends BaseAdapter {
         }
     }
 
-    public void clearSelected(){
+    public void clearSelectedCards(){
         for (int i = 0; i < isClicked.length; ++i)
             if (isOpened[i] == false && isClicked[i] == true) {
                 isClicked[i] = false;
-                imges[i] = BACK_IMG;
             }
+
+	    selectedPos1 = -1;
+	    selectedPos2 = -1;
+	    this.notifyDataSetChanged();
     }
 
     @Override
