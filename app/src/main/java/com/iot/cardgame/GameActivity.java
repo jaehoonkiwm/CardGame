@@ -1,6 +1,7 @@
 package com.iot.cardgame;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.view.Menu;
@@ -10,6 +11,9 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.Timer;
 
 
 public class GameActivity extends ActionBarActivity implements GridView.OnItemClickListener{
@@ -19,6 +23,8 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
     TextView tvScore;
     DisplayMetrics metrics;
     ImageAdapter imageAdapter;
+    private CountDownTimer timer;
+    public int time = 60;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +41,7 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         gridView.setAdapter(imageAdapter);
         gridView.setOnItemClickListener(this);
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        timer.start();
     }
 
     private void initStage(int num){
@@ -52,6 +59,21 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         }
         this.gridView.setNumColumns(col);
         this.imageAdapter = new ImageAdapter(getApplicationContext(), metrics, (int)Math.pow(2, num) * 6);
+
+        timer = new CountDownTimer(5 * 1000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                --time;
+                tvTime.setText("Time : " + time);
+            }
+
+            @Override
+            public void onFinish() {
+                --time;
+                tvTime.setText("Time : " + time);
+                Toast.makeText(getApplicationContext(), "Time Over", Toast.LENGTH_SHORT).show();
+            }
+        };
     }
 
     @Override
@@ -59,7 +81,7 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         //Toast.makeText(this, parent.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
 
         imageAdapter.itemClicked(position);
-
+        tvScore.setText(imageAdapter.getScore()+"");
 
         //imageAdapter.notifyDataSetChanged();
     }
