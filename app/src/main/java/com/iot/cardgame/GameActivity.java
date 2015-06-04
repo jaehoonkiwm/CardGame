@@ -1,7 +1,7 @@
 package com.iot.cardgame;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,12 +9,14 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 
 public class GameActivity extends ActionBarActivity implements GridView.OnItemClickListener{
 
     GridView gridView;
+    TextView tvTime;
+    TextView tvScore;
     DisplayMetrics metrics;
     ImageAdapter imageAdapter;
 
@@ -25,6 +27,8 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         setContentView(R.layout.activity_game);
 
         this.gridView = (GridView) findViewById(R.id.gridView);
+        this.tvTime = (TextView) findViewById(R.id.tvTime);
+        this.tvScore = (TextView) findViewById(R.id.tvScore);
         this.metrics = new DisplayMetrics();
         initStage(0);
 
@@ -57,7 +61,7 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         imageAdapter.itemClicked(position);
 
 
-        imageAdapter.notifyDataSetChanged();
+        //imageAdapter.notifyDataSetChanged();
     }
 
     @Override

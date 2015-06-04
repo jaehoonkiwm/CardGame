@@ -15,20 +15,20 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/textView8"
+        android:text="unknown"
+        android:id="@+id/tvName"
         android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@+id/textView7"
-        android:layout_toStartOf="@+id/textView7" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/textView9"
-        android:layout_alignBottom="@+id/textView8"
-        android:layout_toRightOf="@+id/textView7"
-        android:layout_toEndOf="@+id/textView7" />
+        android:text="Score : 0"
+        android:id="@+id/tvScore"
+        android:layout_below="@+id/gridView"
+        android:layout_alignRight="@+id/gridView"
+        android:layout_alignEnd="@+id/gridView" />
 
     <GridView
         android:layout_width="wrap_content"
@@ -36,7 +36,15 @@
         android:id="@+id/gridView"
         android:layout_below="@+id/textView7"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/textView8"
+        android:layout_above="@+id/tvName"
         android:numColumns="auto_fit" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time : 60"
+        android:id="@+id/tvTime"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

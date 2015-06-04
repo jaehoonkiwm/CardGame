@@ -84,6 +84,8 @@ public class ImageAdapter extends BaseAdapter {
 				    openTwoCards();
 			    }
 		    }
+
+            this.notifyDataSetChanged();
 	    }
     }
 
@@ -103,7 +105,7 @@ public class ImageAdapter extends BaseAdapter {
 				    handler.sendEmptyMessage(0);
 			    }
 		    }
-	    }, 500);
+	    }, 1000);
 
     }
 
