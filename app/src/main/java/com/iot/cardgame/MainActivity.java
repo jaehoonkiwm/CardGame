@@ -8,10 +8,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity {
-
+    private static final int REQUEST_CODE = 0;
+    private int stage;
     EditText etName;
 
     @Override
@@ -19,7 +21,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().setFormat(Window.FEATURE_NO_TITLE);
-
+        stage = 0;
         etName = (EditText) findViewById(R.id.etName);
     }
 
@@ -51,7 +53,8 @@ public class MainActivity extends ActionBarActivity {
             case R.id.btnStart:
                 intent = new Intent(this, GameActivity.class);
                 intent.putExtra("name", etName.getText().toString());
-                startActivity(intent);
+                intent.putExtra("stage", stage);
+                startActivityForResult(intent, REQUEST_CODE);
                 break;
 
             case R.id.btnScore:
@@ -59,6 +62,30 @@ public class MainActivity extends ActionBarActivity {
                 intent.putExtra("name", etName.getText().toString());
                 startActivity(intent);
                 break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE){
+            if (resultCode == RESULT_OK){
+                if (data.getBooleanExtra("isClear", false)) {
+                    stage = data.getIntExtra("stage", 0);
+                    if (stage < 2) {
+                        ++stage;
+                        Intent intent = new Intent(this, GameActivity.class);
+                        intent.putExtra("name", etName.getText().toString());
+                        intent.putExtra("stage", stage);
+                        startActivityForResult(intent, REQUEST_CODE);
+
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Game Over", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "시간초과로 게임 오", Toast.LENGTH_LONG).show();
+            }
         }
     }
 }

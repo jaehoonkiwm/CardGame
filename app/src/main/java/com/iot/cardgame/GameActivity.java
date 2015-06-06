@@ -1,5 +1,6 @@
 package com.iot.cardgame;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.ActionBarActivity;
@@ -23,6 +24,8 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
     TextView tvScore;
     DisplayMetrics metrics;
     ImageAdapter imageAdapter;
+
+    private int stage;
     private CountDownTimer timer;
     public int time = 60;
 
@@ -32,11 +35,14 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         getWindow().setFormat(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_game);
 
+        Intent intent = getIntent();
+        stage = intent.getIntExtra("stage", 0);
+
         this.gridView = (GridView) findViewById(R.id.gridView);
         this.tvTime = (TextView) findViewById(R.id.tvTime);
         this.tvScore = (TextView) findViewById(R.id.tvScore);
         this.metrics = new DisplayMetrics();
-        initStage(0);
+        initStage(stage);
 
         gridView.setAdapter(imageAdapter);
         gridView.setOnItemClickListener(this);
@@ -60,18 +66,25 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         this.gridView.setNumColumns(col);
         this.imageAdapter = new ImageAdapter(getApplicationContext(), metrics, (int)Math.pow(2, num) * 6);
 
-        timer = new CountDownTimer(5 * 1000, 1000) {
+        timer = new CountDownTimer(60 * 1000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 --time;
                 tvTime.setText("Time : " + time);
+                tvScore.setText("Score : " + imageAdapter.getScore());
             }
 
             @Override
             public void onFinish() {
                 --time;
                 tvTime.setText("Time : " + time);
-                Toast.makeText(getApplicationContext(), "Time Over", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Time Over", Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent();
+                intent.putExtra("isClear", false);
+                intent.putExtra("stage", stage);
+                setResult(RESULT_CANCELED, intent);
+                finish();
             }
         };
     }
@@ -81,7 +94,14 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         //Toast.makeText(this, parent.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
 
         imageAdapter.itemClicked(position);
-        tvScore.setText(imageAdapter.getScore()+"");
+        tvScore.setText("Score : " + imageAdapter.getScore());
+        if (imageAdapter.isGameClear()){
+            Intent intent = new Intent();
+            intent.putExtra("isClear", true);
+            intent.putExtra("stage", stage);
+            setResult(RESULT_OK, intent);
+            finish();
+        }
 
         //imageAdapter.notifyDataSetChanged();
     }

@@ -13,6 +13,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+
 /**
  * Created by iao on 15. 5. 28.
  */
@@ -32,8 +36,14 @@ public class ImageAdapter extends BaseAdapter {
     private int col;
 
     private int[] imges;
-    private int[] frontimages = {R.drawable.junghwa, R.drawable.junghwa2, R.drawable.junghwa3,
-                                R.drawable.junghwa, R.drawable.junghwa2, R.drawable.junghwa3};
+    private int[] resourceImages = {R.drawable.ddolgie, R.drawable.ddungee, R.drawable.hochi,
+            R.drawable.shaechomi, R.drawable.drago, R.drawable.yorongee,
+            R.drawable.macho, R.drawable.mimi, R.drawable.mongchi,
+            R.drawable.kiki, R.drawable.kangdari, R.drawable.jjingjjingee};
+
+    private int[] frontimages;
+
+	private boolean ismatching;
     private boolean[] isClicked;
     private boolean[] isOpened;
     private int selectedPos1 = -1;
@@ -48,7 +58,7 @@ public class ImageAdapter extends BaseAdapter {
         this.context = context;
         this.mMetrics = mMetrics;
         this.imges = new int[cntCard];
-        //this.frontimages = new int[cntCard];
+        this.frontimages = new int[cntCard];
         this.isClicked = new boolean[cntCard];
         this.isOpened = new boolean[cntCard];
 
@@ -60,7 +70,32 @@ public class ImageAdapter extends BaseAdapter {
 
         this.score = 0;
 
-        setRowCol(cntCard);
+        initImages(cntCard);
+    }
+
+    private void initImages(int cnt){
+        int cntImage = cnt / 2;                              // 필요한 카드개수 1단계 3, 2단계 6, 3단계 12
+        ArrayList allImages = new ArrayList();
+        //Collections.addAll(allImages, resourceImages);       // 이미지 배열을 arraylist
+
+	    for (int i = 0; i < resourceImages.length; ++i)
+		    allImages.add(resourceImages[i]);
+	    Collections.shuffle(allImages);                      // 이미지 섞기
+
+        Object [] tmp =  allImages.toArray(new Object[12]);
+	    //Log.i(TAG, "!!!!!!!!!!!!!    "  + allImages.size());
+        for(int i = 0; i < resourceImages.length; ++i)
+            resourceImages[i] = Integer.parseInt(tmp[i].toString());
+
+        ArrayList imageIndex = new ArrayList();
+        for (int i = 0; i < cnt; ++i)
+            imageIndex.add(i);
+        Collections.shuffle(imageIndex);
+
+        for (int i = 0; i < cnt; ++i)
+            frontimages[(int)imageIndex.get(i)] = resourceImages[i % cntImage];
+
+        setRowCol(cnt);
     }
 
     private void setRowCol(int cnt){            // 카드 개수에 따라 열과 행을 설
@@ -78,7 +113,7 @@ public class ImageAdapter extends BaseAdapter {
 
 	//
     public void itemClicked(int position){      // 카드가 눌렸을때
-	    if (!isOpened[position] && !isStart) {      // 오픈된 카드가 아닐경우
+	    if (!isOpened[position] && !isStart && !ismatching) {      // 오픈된 카드가 아닐경우
 		    if (isClicked[position]) {
 			    isClicked[position] = false;
 			    imges[position] = BACK_IMAGE;
@@ -91,6 +126,7 @@ public class ImageAdapter extends BaseAdapter {
 				    selectedPos1 = position;
 			    else {
 				    selectedPos2 = position;
+				    ismatching = true;
 				    openTwoCards();
 			    }
 		    }
@@ -136,6 +172,7 @@ public class ImageAdapter extends BaseAdapter {
 				Toast.makeText(context, "불일치", Toast.LENGTH_SHORT).show();
 				imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
 			}
+			ismatching = false;
 			clearSelectedCards();
 		}
 	};
@@ -163,6 +200,14 @@ public class ImageAdapter extends BaseAdapter {
 	    selectedPos2 = -1;
 	    this.notifyDataSetChanged();
     }
+
+	public boolean isGameClear(){
+		for (int i = 0; i < isOpened.length; ++i){
+			if (!isOpened[i])
+				return false;
+		}
+		return true;
+	}
 
     public int getScore(){
         Log.d(TAG, score + "");
@@ -209,7 +254,7 @@ public class ImageAdapter extends BaseAdapter {
                 public void run() {
                     handler.sendEmptyMessage(-1);
                 }
-            }, 1000);
+            }, 5000);
         }else {
             Log.d(TAG, "start false");
             imageView.setImageResource(imges[position]);
