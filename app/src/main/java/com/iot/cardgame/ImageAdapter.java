@@ -43,6 +43,8 @@ public class ImageAdapter extends BaseAdapter {
 
     private int[] frontimages;
 
+    private ImageView [] imageViews;
+
 	private boolean ismatching;
     private boolean[] isClicked;
     private boolean[] isOpened;
@@ -59,6 +61,7 @@ public class ImageAdapter extends BaseAdapter {
         this.mMetrics = mMetrics;
         this.imges = new int[cntCard];
         this.frontimages = new int[cntCard];
+        this.imageViews = new ImageView[cntCard];
         this.isClicked = new boolean[cntCard];
         this.isOpened = new boolean[cntCard];
 
@@ -70,35 +73,33 @@ public class ImageAdapter extends BaseAdapter {
 
         this.score = 0;
 
-        initImages(cntCard);
+        initRandomImages(cntCard);
     }
 
-    private void initImages(int cnt){
+    private void initRandomImages(int cnt){
         int cntImage = cnt / 2;                              // 필요한 카드개수 1단계 3, 2단계 6, 3단계 12
         ArrayList allImages = new ArrayList();
-        //Collections.addAll(allImages, resourceImages);       // 이미지 배열을 arraylist
 
-	    for (int i = 0; i < resourceImages.length; ++i)
+	    for (int i = 0; i < resourceImages.length; ++i)     // array를 arraylist로 변경
 		    allImages.add(resourceImages[i]);
 	    Collections.shuffle(allImages);                      // 이미지 섞기
 
         Object [] tmp =  allImages.toArray(new Object[12]);
-	    //Log.i(TAG, "!!!!!!!!!!!!!    "  + allImages.size());
-        for(int i = 0; i < resourceImages.length; ++i)
+        for(int i = 0; i < resourceImages.length; ++i)       // 섞인 이미지 다시 배열에 추가
             resourceImages[i] = Integer.parseInt(tmp[i].toString());
 
-        ArrayList imageIndex = new ArrayList();
+        ArrayList imageIndex = new ArrayList();                 // index 랜덤 생성
         for (int i = 0; i < cnt; ++i)
             imageIndex.add(i);
         Collections.shuffle(imageIndex);
 
-        for (int i = 0; i < cnt; ++i)
+        for (int i = 0; i < cnt; ++i)                           // frontimage 생성
             frontimages[(int)imageIndex.get(i)] = resourceImages[i % cntImage];
 
         setRowCol(cnt);
     }
 
-    private void setRowCol(int cnt){            // 카드 개수에 따라 열과 행을 설
+    private void setRowCol(int cnt){            // 카드 개수에 따라 열과 행을 설정
         if (cnt == 6){
             this.row = 2;
             this.col = 3;
@@ -135,9 +136,26 @@ public class ImageAdapter extends BaseAdapter {
 	    }
     }
 
+    private void flipCard(int position){
+        View cardFace = imageViews[position];//findViewById(R.id.main_activity_card_face);
+        View cardBack = imageViews[position];//findViewById(R.id.main_activity_card_back);
+
+        FlipAnimation flipAnimation = new FlipAnimation(cardFace, cardBack);
+
+        if (cardFace.getVisibility() == View.GONE)
+        {
+            flipAnimation.reverse();
+        }
+        //rootLayout.startAnimation(flipAnimation);
+        cardFace.startAnimation(flipAnimation);
+    }
+
     public void openTwoCards(){
 		imges[selectedPos1] = frontimages[selectedPos1];
 	    imges[selectedPos2] = frontimages[selectedPos2];
+
+        flipCard(selectedPos1);
+        flipCard(selectedPos2);
 
 	    this.notifyDataSetChanged();
 
@@ -157,8 +175,8 @@ public class ImageAdapter extends BaseAdapter {
 
     }
 
-	Handler handler = new Handler() {
-		@Override
+	private Handler handler = new Handler() {
+        @Override
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			if (msg.what == -1){
@@ -184,11 +202,6 @@ public class ImageAdapter extends BaseAdapter {
         return false;
     }
 
-    public void decision(){
-        for (int i = 0; i != isClicked.length; ++i){
-;
-        }
-    }
 
     public void clearSelectedCards(){
         for (int i = 0; i < isClicked.length; ++i)
@@ -237,17 +250,17 @@ public class ImageAdapter extends BaseAdapter {
         Log.i(TAG, rowWidth + " " + colWidth);
 
         if (convertView == null) {
-            imageView = new ImageView(context);
-            imageView.setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth- 50));
-            imageView.setScaleType(ImageView.ScaleType.FIT_START);
-            imageView.setPadding(3, 3, 3, 3);
+            imageViews[position] = new ImageView(context);
+            imageViews[position].setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth - 50));
+            imageViews[position].setScaleType(ImageView.ScaleType.FIT_START);
+            imageViews[position].setPadding(3, 3, 3, 3);
         } else {
-            imageView = (ImageView) convertView;
+            imageViews[position] = (ImageView) convertView;
         }
 
         if (isStart) {
             Log.d(TAG, "start true");
-            imageView.setImageResource(frontimages[position]);
+            imageViews[position].setImageResource(frontimages[position]);
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -257,8 +270,8 @@ public class ImageAdapter extends BaseAdapter {
             }, 5000);
         }else {
             Log.d(TAG, "start false");
-            imageView.setImageResource(imges[position]);
+            imageViews[position].setImageResource(imges[position]);
         }
-        return imageView;
+        return imageViews[position];
     }
 }

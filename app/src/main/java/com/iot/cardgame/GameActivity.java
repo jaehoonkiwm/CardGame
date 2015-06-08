@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,12 +37,14 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         setContentView(R.layout.activity_game);
 
         Intent intent = getIntent();
+
         stage = intent.getIntExtra("stage", 0);
 
         this.gridView = (GridView) findViewById(R.id.gridView);
         this.tvTime = (TextView) findViewById(R.id.tvTime);
         this.tvScore = (TextView) findViewById(R.id.tvScore);
         this.metrics = new DisplayMetrics();
+        Log.i("qqqwwww", metrics.widthPixels+"");
         initStage(stage);
 
         gridView.setAdapter(imageAdapter);
