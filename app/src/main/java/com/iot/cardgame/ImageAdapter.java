@@ -1,6 +1,7 @@
 package com.iot.cardgame;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
@@ -24,37 +25,34 @@ public class ImageAdapter extends BaseAdapter {
     private static final String TAG = "ImageAdaptor";
 	private static final int BACK_IMAGE = R.drawable.backimg;
 	private static final int CLICKED_IMAGE = R.drawable.clickedbackimg;
-
 	private static final int IMAGE_IS_MACHED = 1;
 	private static final int IMAGE_IS_NOT_MACHED = 0;
 
-    private boolean isStart = true;
+    public static boolean isStart = true;
 
-    private Context context;
+    private static Context context;
     private DisplayMetrics mMetrics;
     private int row;
     private int col;
 
-    private int[] imges;
+    private static int[] imges;
     private int[] resourceImages = {R.drawable.ddolgie, R.drawable.ddungee, R.drawable.hochi,
             R.drawable.shaechomi, R.drawable.drago, R.drawable.yorongee,
             R.drawable.macho, R.drawable.mimi, R.drawable.mongchi,
             R.drawable.kiki, R.drawable.kangdari, R.drawable.jjingjjingee};
-
     private int[] frontimages;
 
+	private static boolean ismatching;
+    private static boolean[] isClicked;
+    private static boolean[] isOpened;
+    private static int selectedPos1 = -1;
+    private static int selectedPos2 = -1;
+
     private ImageView [] imageViews;
-
-	private boolean ismatching;
-    private boolean[] isClicked;
-    private boolean[] isOpened;
-    private int selectedPos1 = -1;
-    private int selectedPos2 = -1;
-
-    private TextView tvScore;
-    private ImageView imageView;
+    private ImageView [] frontImageViews;
 
     private int score;
+    int cnt;
 
     public ImageAdapter(Context context, DisplayMetrics mMetrics, int cntCard) {
         this.context = context;
@@ -62,6 +60,8 @@ public class ImageAdapter extends BaseAdapter {
         this.imges = new int[cntCard];
         this.frontimages = new int[cntCard];
         this.imageViews = new ImageView[cntCard];
+        this.frontImageViews = new ImageView[cntCard];
+        initImageViews(cntCard);
         this.isClicked = new boolean[cntCard];
         this.isOpened = new boolean[cntCard];
 
@@ -74,6 +74,19 @@ public class ImageAdapter extends BaseAdapter {
         this.score = 0;
 
         initRandomImages(cntCard);
+    }
+
+    private void initImageViews(int cnt){
+        for(int i = 0; i < cnt; ++i) {
+            imageViews[i] = new ImageView(context);
+            imageViews[i].setScaleType(ImageView.ScaleType.FIT_START);
+            imageViews[i].setPadding(3, 3, 3, 3);
+
+            frontImageViews[i] = new ImageView(context);
+            frontImageViews[i].setScaleType(ImageView.ScaleType.FIT_START);
+            frontImageViews[i].setPadding(3, 3, 3, 3);
+            frontImageViews[i].setImageResource(frontimages[i]);
+        }
     }
 
     private void initRandomImages(int cnt){
@@ -112,120 +125,138 @@ public class ImageAdapter extends BaseAdapter {
         }
     }
 
-	//
-    public void itemClicked(int position){      // 카드가 눌렸을때
-	    if (!isOpened[position] && !isStart && !ismatching) {      // 오픈된 카드가 아닐경우
-		    if (isClicked[position]) {
-			    isClicked[position] = false;
-			    imges[position] = BACK_IMAGE;
-			    selectedPos1 = -1;
-		    } else {
-			    isClicked[position] = true;
-			    imges[position] = CLICKED_IMAGE;
+        //
+        public void itemClicked(int position){      // 카드가 눌렸을때
+            Log.d(TAG, "itemClicked()");
+            if (!isOpened[position]  && !ismatching && !isStart) {      // 오픈된 카드가 아닐경우
+                if (isClicked[position]) {
+                    isClicked[position] = false;
+                    imges[position] = BACK_IMAGE;
+                    selectedPos1 = -1;
+                } else {
+                    isClicked[position] = true;
+                    imges[position] = CLICKED_IMAGE;
 
-			    if (selectedPos1 == -1)
-				    selectedPos1 = position;
-			    else {
-				    selectedPos2 = position;
-				    ismatching = true;
-				    openTwoCards();
-			    }
-		    }
+                    if (selectedPos1 == -1)
+                        selectedPos1 = position;
+                    else {
+                        selectedPos2 = position;
+                        ismatching = true;
+                        openTwoCards();
+                    }
+                }
 
-            this.notifyDataSetChanged();
-	    }
-    }
+               // this.notifyDataSetChanged();
+            }
+        }
 
-    private void flipCard(int position){
-        View cardFace = imageViews[position];//findViewById(R.id.main_activity_card_face);
-        View cardBack = imageViews[position];//findViewById(R.id.main_activity_card_back);
+        private void flipCard(int position){
+            Log.d(TAG, "flipCard()");
+            View cardFace = imageViews[position];
+            View cardBack = frontImageViews[position];
+
+            FlipAnimation flipAnimation = new FlipAnimation(cardFace, cardBack);
+
+            if (cardFace.getVisibility() == View.GONE)
+            {
+                Log.d(TAG, "----------------------------------reverse()");
+                flipAnimation.reverse();
+            }
+            //rootLayout.startAnimation(flipAnimation);
+            cardFace.startAnimation(flipAnimation);
+            //this.notifyDataSetChanged();
+        }
+
+    private void flipCard2(int position){
+        Log.d(TAG, "flipCard()");
+        View cardFace = frontImageViews[position];
+        View cardBack = imageViews[position];
 
         FlipAnimation flipAnimation = new FlipAnimation(cardFace, cardBack);
 
-        if (cardFace.getVisibility() == View.GONE)
-        {
+        try {
+            Thread.sleep(500);
             flipAnimation.reverse();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        //rootLayout.startAnimation(flipAnimation);
+
         cardFace.startAnimation(flipAnimation);
+        //this.notifyDataSetChanged();
     }
 
-    public void openTwoCards(){
-		imges[selectedPos1] = frontimages[selectedPos1];
-	    imges[selectedPos2] = frontimages[selectedPos2];
+        public void openTwoCards(){
+            Log.d(TAG, "openTwoCards()");
+            if (selectedPos1 != -1 && selectedPos2 != -1) {
+                imges[selectedPos1] = frontimages[selectedPos1];
+                imges[selectedPos2] = frontimages[selectedPos2];
+                Log.i(TAG, "1 :    " + selectedPos1 + "    " + selectedPos2);
+              //  flipCard(selectedPos1);
+               // flipCard(selectedPos2);
+                Log.i(TAG, "2 :    " + selectedPos1 + "    " + selectedPos2);
+                this.notifyDataSetChanged();
 
-        flipCard(selectedPos1);
-        flipCard(selectedPos2);
+                Log.d(TAG, "5cho");
 
-	    this.notifyDataSetChanged();
+                cardCompare();
 
-	    new Handler().postDelayed(new Runnable() {
-		    @Override
-		    public void run() {
-			    if (isCardsMatched(frontimages[selectedPos1], frontimages[selectedPos2])) {
+            }
+        }
 
-                    score += 10;
-				    handler.sendEmptyMessage(1);
+        private void cardCompare(){
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "****************** handler : " + selectedPos1 + selectedPos2);
+                    if (isCardsMatched(frontimages[selectedPos1], frontimages[selectedPos2])) {
+                        score += 10;
+                      //  handler.sendEmptyMessage(1);
+                        isOpened[selectedPos1] = true;
+                        isOpened[selectedPos2] = true;
+                    } else {
+                        //handler.sendEmptyMessage(0);
+                        imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
+                    }
+                    ismatching = false;
+                    clearSelectedCards();
+                }
+            }, 1000);
 
-			    } else{
-				    handler.sendEmptyMessage(0);
-			    }
-		    }
-	    }, 1000);
+        }
 
-    }
+        public boolean isCardsMatched(int img1, int img2){
+            Log.d(TAG,"isCardsMatched()");
+            if (img1 == img2) {
+                return true;
+            }
+            return false;
+        }
 
-	private Handler handler = new Handler() {
-        @Override
-		public void handleMessage(Message msg) {
-			super.handleMessage(msg);
-			if (msg.what == -1){
-                Log.d(TAG, "10초");
-                isStart = false;
-            } else if (msg.what == IMAGE_IS_MACHED){
-				isOpened[selectedPos1] = true;
-				isOpened[selectedPos2] = true;
-				Toast.makeText(context, "일치", Toast.LENGTH_SHORT).show();
-			} else if (msg.what == IMAGE_IS_NOT_MACHED){
-				Toast.makeText(context, "불일치", Toast.LENGTH_SHORT).show();
-				imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
-			}
-			ismatching = false;
-			clearSelectedCards();
-		}
-	};
 
-    public boolean isCardsMatched(int img1, int img2){
-        if (img1 == img2) {
+        public void clearSelectedCards(){
+            Log.d(TAG, "clearSelectedCards()");
+            for (int i = 0; i < isClicked.length; ++i)
+                if (!isOpened[i] && isClicked[i]) {
+                    isClicked[i] = false;
+                }
+
+            selectedPos1 = -1;
+            selectedPos2 = -1;
+           this.notifyDataSetChanged();
+        }
+
+        public boolean isGameClear(){
+            for (int i = 0; i < isOpened.length; ++i){
+                if (!isOpened[i])
+                    return false;
+            }
             return true;
         }
-        return false;
-    }
 
-
-    public void clearSelectedCards(){
-        for (int i = 0; i < isClicked.length; ++i)
-            if (!isOpened[i] && isClicked[i]) {
-                isClicked[i] = false;
-            }
-
-	    selectedPos1 = -1;
-	    selectedPos2 = -1;
-	    this.notifyDataSetChanged();
-    }
-
-	public boolean isGameClear(){
-		for (int i = 0; i < isOpened.length; ++i){
-			if (!isOpened[i])
-				return false;
-		}
-		return true;
-	}
-
-    public int getScore(){
-        Log.d(TAG, score + "");
-        return score;
-    }
+        public int getScore(){
+            Log.d(TAG, "Score : " + score);
+            return score;
+        }
 
     @Override
     public int getCount() {
@@ -247,31 +278,26 @@ public class ImageAdapter extends BaseAdapter {
         int rowWidth = (mMetrics.widthPixels) / row;
         int colWidth = (mMetrics.heightPixels) / col;
 
-        Log.i(TAG, rowWidth + " " + colWidth);
+       // Log.i(TAG, rowWidth + " " + colWidth);
 
         if (convertView == null) {
-            imageViews[position] = new ImageView(context);
+            Log.d(TAG, "이미지뷰 생성");
             imageViews[position].setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth - 50));
-            imageViews[position].setScaleType(ImageView.ScaleType.FIT_START);
-            imageViews[position].setPadding(3, 3, 3, 3);
+            frontImageViews[position].setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth - 50));
         } else {
+            Log.d(TAG, "이미지뷰 불러오기");
             imageViews[position] = (ImageView) convertView;
         }
 
         if (isStart) {
             Log.d(TAG, "start true");
             imageViews[position].setImageResource(frontimages[position]);
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handler.sendEmptyMessage(-1);
-                }
-            }, 5000);
         }else {
-            Log.d(TAG, "start false");
+            Log.d(TAG, "start false - "+ (++cnt));
             imageViews[position].setImageResource(imges[position]);
         }
+
+        //imageViews[position].setImageResource(imges[position]);
         return imageViews[position];
     }
 }

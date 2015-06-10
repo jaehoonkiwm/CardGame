@@ -14,6 +14,7 @@ import android.widget.Toast;
 public class MainActivity extends ActionBarActivity {
     private static final int REQUEST_CODE = 0;
     private int stage;
+    private int score;
     EditText etName;
 
     @Override
@@ -22,6 +23,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         getWindow().setFormat(Window.FEATURE_NO_TITLE);
         stage = 0;
+        score = 0;
         etName = (EditText) findViewById(R.id.etName);
     }
 
@@ -54,6 +56,7 @@ public class MainActivity extends ActionBarActivity {
                 intent = new Intent(this, GameActivity.class);
                 intent.putExtra("name", etName.getText().toString());
                 intent.putExtra("stage", stage);
+                intent.putExtra("score", score);
                 startActivityForResult(intent, REQUEST_CODE);
                 break;
 
@@ -72,19 +75,23 @@ public class MainActivity extends ActionBarActivity {
             if (resultCode == RESULT_OK){
                 if (data.getBooleanExtra("isClear", false)) {
                     stage = data.getIntExtra("stage", 0);
+                    score = data.getIntExtra("score", 0);
                     if (stage < 2) {
                         ++stage;
                         Intent intent = new Intent(this, GameActivity.class);
                         intent.putExtra("name", etName.getText().toString());
                         intent.putExtra("stage", stage);
+                        intent.putExtra("score", score);
                         startActivityForResult(intent, REQUEST_CODE);
+                        Toast.makeText(getApplicationContext(), stage + " " + score, Toast.LENGTH_SHORT).show();
 
                     } else {
-                        Toast.makeText(getApplicationContext(), "Game Over", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Game Clear!! Your Score : " + score, Toast.LENGTH_SHORT).show();
                     }
                 }
             } else {
                 Toast.makeText(getApplicationContext(), "시간초과로 게임 오", Toast.LENGTH_LONG).show();
+                stage = 0;
             }
         }
     }

@@ -3,6 +3,8 @@ package com.iot.cardgame;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,11 +17,12 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Stack;
 import java.util.Timer;
 
 
 public class GameActivity extends ActionBarActivity implements GridView.OnItemClickListener{
-
+    private static final String TAG = "GameActivity";
     GridView gridView;
     TextView tvTime;
     TextView tvScore;
@@ -29,6 +32,7 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
     private int stage;
     private CountDownTimer timer;
     public int time = 60;
+    public int score = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,20 +43,25 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         Intent intent = getIntent();
 
         stage = intent.getIntExtra("stage", 0);
+        score = intent.getIntExtra("score", 0);
 
         this.gridView = (GridView) findViewById(R.id.gridView);
         this.tvTime = (TextView) findViewById(R.id.tvTime);
         this.tvScore = (TextView) findViewById(R.id.tvScore);
         this.metrics = new DisplayMetrics();
-        Log.i("qqqwwww", metrics.widthPixels+"");
         initStage(stage);
 
         gridView.setAdapter(imageAdapter);
         gridView.setOnItemClickListener(this);
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        timer.start();
-    }
 
+        //timer.start();
+
+        timeSet();
+        scoreSet();
+        imageAdapter.isStart = true;
+        handler.sendEmptyMessageDelayed(1, 10000);
+    }
     private void initStage(int num){
         int col = 0;
         switch (num){
@@ -69,12 +78,12 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         this.gridView.setNumColumns(col);
         this.imageAdapter = new ImageAdapter(getApplicationContext(), metrics, (int)Math.pow(2, num) * 6);
 
-        timer = new CountDownTimer(60 * 1000, 1000) {
+        /*timer = new CountDownTimer(60 * 1000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 --time;
                 tvTime.setText("Time : " + time);
-                tvScore.setText("Score : " + imageAdapter.getScore());
+                //tvScore.setText("Score : " + imageAdapter.getScore());
             }
 
             @Override
@@ -89,24 +98,61 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
                 setResult(RESULT_CANCELED, intent);
                 finish();
             }
-        };
+        };*/
+    }
+
+    public void timeSet(){
+        tvTime.setText("Time : " + time);
+    }
+
+    public void scoreSet(){
+        tvScore.setText("Score : " + imageAdapter.getScore());
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //Toast.makeText(this, parent.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
-
         imageAdapter.itemClicked(position);
-        tvScore.setText("Score : " + imageAdapter.getScore());
-        if (imageAdapter.isGameClear()){
-            Intent intent = new Intent();
-            intent.putExtra("isClear", true);
-            intent.putExtra("stage", stage);
-            setResult(RESULT_OK, intent);
-            finish();
-        }
+    }
 
-        //imageAdapter.notifyDataSetChanged();
+    public Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == 0) {
+                score = imageAdapter.getScore();
+                scoreSet();
+                if (imageAdapter.isGameClear()) {
+                    Intent intent = new Intent();
+                    intent.putExtra("isClear", true);
+                    intent.putExtra("stage", stage);
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+
+                if (time > 0) {
+                    --time;
+                    timeSet();
+                } else {
+                    Intent intent = new Intent();
+                    intent.putExtra("isClear", false);
+                    intent.putExtra("stage", stage);
+                    intent.putExtra("score", score);
+                    setResult(RESULT_CANCELED, intent);
+                    finish();
+                }
+                handler.sendEmptyMessageDelayed(0, 1000);
+            } else if (msg.what == 1) {
+                imageAdapter.isStart = false;
+                imageAdapter.notifyDataSetChanged();
+                handler.sendEmptyMessageDelayed(0, 1000);
+            }
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeMessages(0);
     }
 
     @Override
