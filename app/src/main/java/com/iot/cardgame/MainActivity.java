@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
     private static final int REQUEST_CODE = 0;
+    private String name;
     private int stage;
     private int score;
     EditText etName;
@@ -53,8 +54,11 @@ public class MainActivity extends ActionBarActivity {
         Intent intent;
         switch (v.getId()){
             case R.id.btnStart:
+                name = etName.getText().toString();
+                if (name.equals(""))
+                    name = "unknown";
                 intent = new Intent(this, GameActivity.class);
-                intent.putExtra("name", etName.getText().toString());
+                intent.putExtra("name", name);
                 intent.putExtra("stage", stage);
                 intent.putExtra("score", score);
                 startActivityForResult(intent, REQUEST_CODE);
@@ -79,7 +83,7 @@ public class MainActivity extends ActionBarActivity {
                     if (stage < 2) {
                         ++stage;
                         Intent intent = new Intent(this, GameActivity.class);
-                        intent.putExtra("name", etName.getText().toString());
+                        intent.putExtra("name", name);
                         intent.putExtra("stage", stage);
                         intent.putExtra("score", score);
                         startActivityForResult(intent, REQUEST_CODE);

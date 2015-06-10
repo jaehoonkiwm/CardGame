@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:id="@+id/textView7" />
+        android:id="@+id/tvStage" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -19,25 +19,27 @@
         android:id="@+id/tvName"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:textSize="25dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Score : 0"
         android:id="@+id/tvScore"
-        android:layout_below="@+id/gridView"
-        android:layout_alignRight="@+id/gridView"
-        android:layout_alignEnd="@+id/gridView" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:textSize="25dp"/>
 
     <GridView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/gridView"
-        android:layout_below="@+id/textView7"
+        android:layout_below="@+id/tvStage"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/tvName"
-        android:numColumns="auto_fit" />
+        android:numColumns="auto_fit"
+        android:layout_above="@+id/tvReady"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -45,6 +47,16 @@
         android:text="Time : 60"
         android:id="@+id/tvTime"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:textSize="25dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ready"
+        android:id="@+id/tvReady"
+        android:layout_above="@+id/tvTime"
+        android:layout_centerHorizontal="true"
+        android:textSize="30dp"/>
 
 </RelativeLayout>

@@ -1,5 +1,8 @@
 package com.iot.cardgame;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -25,36 +28,35 @@ public class ImageAdapter extends BaseAdapter {
     private static final String TAG = "ImageAdaptor";
 	private static final int BACK_IMAGE = R.drawable.backimg;
 	private static final int CLICKED_IMAGE = R.drawable.clickedbackimg;
-	private static final int IMAGE_IS_MACHED = 1;
-	private static final int IMAGE_IS_NOT_MACHED = 0;
 
-    public static boolean isStart = true;
-
-    private static Context context;
+    private Context context;
     private DisplayMetrics mMetrics;
     private int row;
     private int col;
 
-    private static int[] imges;
+    public  boolean isStart = true;
+    private boolean ismatching;
+    private boolean[] isClicked;
+    private boolean[] isOpened;
+    private int selectedPos1 = -1;
+    private int selectedPos2 = -1;
+
     private int[] resourceImages = {R.drawable.ddolgie, R.drawable.ddungee, R.drawable.hochi,
             R.drawable.shaechomi, R.drawable.drago, R.drawable.yorongee,
             R.drawable.macho, R.drawable.mimi, R.drawable.mongchi,
             R.drawable.kiki, R.drawable.kangdari, R.drawable.jjingjjingee};
+    private int[] imges;
     private int[] frontimages;
 
-	private static boolean ismatching;
-    private static boolean[] isClicked;
-    private static boolean[] isOpened;
-    private static int selectedPos1 = -1;
-    private static int selectedPos2 = -1;
+
 
     private ImageView [] imageViews;
     private ImageView [] frontImageViews;
 
     private int score;
-    int cnt;
 
     public ImageAdapter(Context context, DisplayMetrics mMetrics, int cntCard) {
+        Log.d(TAG, "카드 개수 : " + cntCard);
         this.context = context;
         this.mMetrics = mMetrics;
         this.imges = new int[cntCard];
@@ -64,6 +66,8 @@ public class ImageAdapter extends BaseAdapter {
         initImageViews(cntCard);
         this.isClicked = new boolean[cntCard];
         this.isOpened = new boolean[cntCard];
+
+
 
         for (int i = 0; i != imges.length; ++i) {
             this.imges[i] = BACK_IMAGE;
@@ -146,50 +150,18 @@ public class ImageAdapter extends BaseAdapter {
                     }
                 }
 
-               // this.notifyDataSetChanged();
+                this.notifyDataSetChanged();
             }
         }
-
-        private void flipCard(int position){
-            Log.d(TAG, "flipCard()");
-            View cardFace = imageViews[position];
-            View cardBack = frontImageViews[position];
-
-            FlipAnimation flipAnimation = new FlipAnimation(cardFace, cardBack);
-
-            if (cardFace.getVisibility() == View.GONE)
-            {
-                Log.d(TAG, "----------------------------------reverse()");
-                flipAnimation.reverse();
-            }
-            //rootLayout.startAnimation(flipAnimation);
-            cardFace.startAnimation(flipAnimation);
-            //this.notifyDataSetChanged();
-        }
-
-    private void flipCard2(int position){
-        Log.d(TAG, "flipCard()");
-        View cardFace = frontImageViews[position];
-        View cardBack = imageViews[position];
-
-        FlipAnimation flipAnimation = new FlipAnimation(cardFace, cardBack);
-
-        try {
-            Thread.sleep(500);
-            flipAnimation.reverse();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        cardFace.startAnimation(flipAnimation);
-        //this.notifyDataSetChanged();
-    }
 
         public void openTwoCards(){
             Log.d(TAG, "openTwoCards()");
             if (selectedPos1 != -1 && selectedPos2 != -1) {
                 imges[selectedPos1] = frontimages[selectedPos1];
                 imges[selectedPos2] = frontimages[selectedPos2];
+                flipCard(selectedPos1, frontimages[selectedPos1]);
+                flipCard(selectedPos2, frontimages[selectedPos2]);
+
                 Log.i(TAG, "1 :    " + selectedPos1 + "    " + selectedPos2);
               //  flipCard(selectedPos1);
                // flipCard(selectedPos2);
@@ -203,6 +175,62 @@ public class ImageAdapter extends BaseAdapter {
             }
         }
 
+    public void flipCard(final int position, final int destination){
+        AnimatorSet animation = (AnimatorSet) AnimatorInflater.loadAnimator(context, R.animator.card_flip_right_in);
+        animation.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                imageViews[position].setImageResource(destination);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        animation.setTarget(imageViews[position]);
+        animation.setDuration(500);
+        animation.start();
+    }
+
+    public void reverseCard(final int position){
+        AnimatorSet animation = (AnimatorSet) AnimatorInflater.loadAnimator(context, R.animator.card_flip_left_in);
+        animation.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                imageViews[position].setImageResource(BACK_IMAGE);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        animation.setTarget(imageViews[position]);
+        animation.setDuration(500);
+        animation.start();
+    }
+
         private void cardCompare(){
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -210,12 +238,12 @@ public class ImageAdapter extends BaseAdapter {
                     Log.d(TAG, "****************** handler : " + selectedPos1 + selectedPos2);
                     if (isCardsMatched(frontimages[selectedPos1], frontimages[selectedPos2])) {
                         score += 10;
-                      //  handler.sendEmptyMessage(1);
                         isOpened[selectedPos1] = true;
                         isOpened[selectedPos2] = true;
                     } else {
-                        //handler.sendEmptyMessage(0);
                         imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
+                        reverseCard(selectedPos1);
+                        reverseCard(selectedPos2);
                     }
                     ismatching = false;
                     clearSelectedCards();
@@ -260,16 +288,19 @@ public class ImageAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
+        Log.d(TAG, "getCount()");
         return imges.length;
     }
 
     @Override
     public Object getItem(int position) {
+        Log.d(TAG, "getItem()");
         return imges[position];
     }
 
     @Override
     public long getItemId(int position) {
+        Log.d(TAG, "getItemId()");
         return position;
     }
 
@@ -281,19 +312,19 @@ public class ImageAdapter extends BaseAdapter {
        // Log.i(TAG, rowWidth + " " + colWidth);
 
         if (convertView == null) {
-            Log.d(TAG, "이미지뷰 생성");
+           // Log.d(TAG, "이미지뷰 생성");
             imageViews[position].setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth - 50));
             frontImageViews[position].setLayoutParams(new GridView.LayoutParams(rowWidth - 50, colWidth - 50));
         } else {
-            Log.d(TAG, "이미지뷰 불러오기");
+            //Log.d(TAG, "이미지뷰 불러오기");
             imageViews[position] = (ImageView) convertView;
         }
 
         if (isStart) {
-            Log.d(TAG, "start true");
+           // Log.d(TAG, "start true");
             imageViews[position].setImageResource(frontimages[position]);
         }else {
-            Log.d(TAG, "start false - "+ (++cnt));
+            //Log.d(TAG, "start false - "+ (++cnt));
             imageViews[position].setImageResource(imges[position]);
         }
 
