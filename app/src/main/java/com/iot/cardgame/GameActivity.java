@@ -20,6 +20,7 @@ import android.widget.Toast;
 import java.util.Stack;
 import java.util.Timer;
 
+// 수정해봄.
 
 public class GameActivity extends ActionBarActivity implements GridView.OnItemClickListener{
     private static final String TAG = "GameActivity";
