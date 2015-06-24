@@ -1,5 +1,6 @@
 package com.iot.cardgame;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -11,18 +12,19 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
     private static final int REQUEST_CODE = 0;
     private String name;
     private int stage;
     private int score;
     EditText etName;
 
+    UserData userInfo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().setFormat(Window.FEATURE_NO_TITLE);
         stage = 0;
         score = 0;
         etName = (EditText) findViewById(R.id.etName);
@@ -57,10 +59,10 @@ public class MainActivity extends ActionBarActivity {
                 name = etName.getText().toString();
                 if (name.equals(""))
                     name = "unknown";
+
+                userInfo = new UserData(name, stage, score);
                 intent = new Intent(this, GameActivity.class);
-                intent.putExtra("name", name);
-                intent.putExtra("stage", stage);
-                intent.putExtra("score", score);
+                intent.putExtra("userinfo", userInfo);
                 startActivityForResult(intent, REQUEST_CODE);
                 break;
 
@@ -77,15 +79,15 @@ public class MainActivity extends ActionBarActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE){
             if (resultCode == RESULT_OK){
-                if (data.getBooleanExtra("isClear", false)) {
-                    stage = data.getIntExtra("stage", 0);
-                    score = data.getIntExtra("score", 0);
+                Bundle bundle = data.getExtras();
+                userInfo = bundle.getParcelable("userinfo");
+                if (data.getBooleanExtra("isClear", true)) {
+                    stage = userInfo.getStage();
+                    score = userInfo.getScore();
                     if (stage < 2) {
                         ++stage;
                         Intent intent = new Intent(this, GameActivity.class);
-                        intent.putExtra("name", name);
-                        intent.putExtra("stage", stage);
-                        intent.putExtra("score", score);
+                        intent.putExtra("userinfo", userInfo);
                         startActivityForResult(intent, REQUEST_CODE);
                         Toast.makeText(getApplicationContext(), stage + " " + score, Toast.LENGTH_SHORT).show();
 
@@ -93,9 +95,12 @@ public class MainActivity extends ActionBarActivity {
                         Toast.makeText(getApplicationContext(), "Game Clear!! Your Score : " + score, Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else {
-                Toast.makeText(getApplicationContext(), "시간초과로 게임 오", Toast.LENGTH_LONG).show();
+
+            } else if (resultCode == RESULT_CANCELED){
+                Toast.makeText(getApplicationContext(), "시간초과로 게임 오버", Toast.LENGTH_LONG).show();
                 stage = 0;
+            } else {
+                ;
             }
         }
     }

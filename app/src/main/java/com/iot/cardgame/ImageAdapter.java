@@ -45,7 +45,7 @@ public class ImageAdapter extends BaseAdapter {
             R.drawable.shaechomi, R.drawable.drago, R.drawable.yorongee,
             R.drawable.macho, R.drawable.mimi, R.drawable.mongchi,
             R.drawable.kiki, R.drawable.kangdari, R.drawable.jjingjjingee};
-    private int[] imges;
+    private int[] images;
     private int[] frontimages;
 
 
@@ -59,7 +59,7 @@ public class ImageAdapter extends BaseAdapter {
         Log.d(TAG, "카드 개수 : " + cntCard);
         this.context = context;
         this.mMetrics = mMetrics;
-        this.imges = new int[cntCard];
+        this.images = new int[cntCard];
         this.frontimages = new int[cntCard];
         this.imageViews = new ImageView[cntCard];
         this.frontImageViews = new ImageView[cntCard];
@@ -69,8 +69,8 @@ public class ImageAdapter extends BaseAdapter {
 
 
 
-        for (int i = 0; i != imges.length; ++i) {
-            this.imges[i] = BACK_IMAGE;
+        for (int i = 0; i != images.length; ++i) {
+            this.images[i] = BACK_IMAGE;
             this.isClicked[i] = false;
             this.isOpened[i] = false;
         }
@@ -135,11 +135,11 @@ public class ImageAdapter extends BaseAdapter {
             if (!isOpened[position]  && !ismatching && !isStart) {      // 오픈된 카드가 아닐경우
                 if (isClicked[position]) {
                     isClicked[position] = false;
-                    imges[position] = BACK_IMAGE;
+                    images[position] = BACK_IMAGE;
                     selectedPos1 = -1;
                 } else {
                     isClicked[position] = true;
-                    imges[position] = CLICKED_IMAGE;
+                    images[position] = CLICKED_IMAGE;
 
                     if (selectedPos1 == -1)
                         selectedPos1 = position;
@@ -157,8 +157,8 @@ public class ImageAdapter extends BaseAdapter {
         public void openTwoCards(){
             Log.d(TAG, "openTwoCards()");
             if (selectedPos1 != -1 && selectedPos2 != -1) {
-                imges[selectedPos1] = frontimages[selectedPos1];
-                imges[selectedPos2] = frontimages[selectedPos2];
+                images[selectedPos1] = frontimages[selectedPos1];
+                images[selectedPos2] = frontimages[selectedPos2];
                 flipCard(selectedPos1, frontimages[selectedPos1]);
                 flipCard(selectedPos2, frontimages[selectedPos2]);
 
@@ -241,7 +241,7 @@ public class ImageAdapter extends BaseAdapter {
                         isOpened[selectedPos1] = true;
                         isOpened[selectedPos2] = true;
                     } else {
-                        imges[selectedPos1] = imges[selectedPos2] = BACK_IMAGE;
+                        images[selectedPos1] = images[selectedPos2] = BACK_IMAGE;
                         reverseCard(selectedPos1);
                         reverseCard(selectedPos2);
                     }
@@ -253,7 +253,7 @@ public class ImageAdapter extends BaseAdapter {
         }
 
         public boolean isCardsMatched(int img1, int img2){
-            Log.d(TAG,"isCardsMatched()");
+            Log.d(TAG, "isCardsMatched()");
             if (img1 == img2) {
                 return true;
             }
@@ -273,6 +273,10 @@ public class ImageAdapter extends BaseAdapter {
            this.notifyDataSetChanged();
         }
 
+    public int getScore(){
+        Log.d(TAG, "Score : " + score);
+        return score;
+    }
         public boolean isGameClear(){
             for (int i = 0; i < isOpened.length; ++i){
                 if (!isOpened[i])
@@ -281,21 +285,26 @@ public class ImageAdapter extends BaseAdapter {
             return true;
         }
 
-        public int getScore(){
-            Log.d(TAG, "Score : " + score);
-            return score;
-        }
+    public void destroy(){
+        isClicked = null;
+        isOpened = null;
+        images = null;
+        frontimages = null;
+        imageViews = null;
+        frontImageViews = null;
+    }
+
 
     @Override
     public int getCount() {
         Log.d(TAG, "getCount()");
-        return imges.length;
+        return images.length;
     }
 
     @Override
     public Object getItem(int position) {
         Log.d(TAG, "getItem()");
-        return imges[position];
+        return images[position];
     }
 
     @Override
@@ -325,10 +334,10 @@ public class ImageAdapter extends BaseAdapter {
             imageViews[position].setImageResource(frontimages[position]);
         }else {
             //Log.d(TAG, "start false - "+ (++cnt));
-            imageViews[position].setImageResource(imges[position]);
+            imageViews[position].setImageResource(images[position]);
         }
 
-        //imageViews[position].setImageResource(imges[position]);
+        //imageViews[position].setImageResource(images[position]);
         return imageViews[position];
     }
 }

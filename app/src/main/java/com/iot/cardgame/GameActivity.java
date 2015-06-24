@@ -32,6 +32,7 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
     DisplayMetrics metrics;
     ImageAdapter imageAdapter;
 
+    UserData userInfo;
     private String name;
     private int stage;
     private boolean timeFlag;
@@ -44,10 +45,12 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         getWindow().setFormat(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_game);
 
-        Intent intent = getIntent();
-        name = intent.getStringExtra("name");
-        stage = intent.getIntExtra("stage", 0);
-        score = intent.getIntExtra("score", 0);
+        Bundle bundle = getIntent().getExtras();
+        userInfo = bundle.getParcelable("userinfo");
+        name = userInfo.getName();
+        stage = userInfo.getStage();
+        score = userInfo.getScore();
+
         Log.d(TAG, "stage : " + stage + " score : " + score);
 
         this.gridView = (GridView) findViewById(R.id.gridView);
@@ -101,29 +104,30 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
         imageAdapter.itemClicked(position);
     }
 
-    public Handler handler = new Handler() {
+    public Handler handler = new Handler(new Handler.Callback() {
         @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+        public boolean handleMessage(Message msg) {
             if (time < 60) {
                 score = imageAdapter.getScore();
                 scoreSet();
                 timeSet();
                 if (imageAdapter.isGameClear()) {
                     score += time;
+                    userInfo.setStage(stage);
+                    userInfo.setScore(score + userInfo.getScore());
                     Intent intent = new Intent();
                     intent.putExtra("isClear", true);
-                    intent.putExtra("stage", stage);
-                    intent.putExtra("score", score);
+                    intent.putExtra("userinfo", userInfo);
                     setResult(RESULT_OK, intent);
                     finish();
                 }
 
                 if (time == 0) {
+                    userInfo.setStage(stage);
+                    userInfo.setScore(score + userInfo.getScore());
                     Intent intent = new Intent();
                     intent.putExtra("isClear", false);
-                    intent.putExtra("stage", stage);
-                    intent.putExtra("score", score);
+                    intent.putExtra("userinfo", userInfo);
                     setResult(RESULT_CANCELED, intent);
                     finish();
                 }
@@ -142,13 +146,17 @@ public class GameActivity extends ActionBarActivity implements GridView.OnItemCl
 
             if (timeFlag == true)
                 handler.sendEmptyMessageDelayed(0, 1000);
+            return false;
         }
-    };
+    });
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        handler.removeMessages(0);
         timeFlag = false;
+        imageAdapter.destroy();
+        imageAdapter = null;
     }
 
     @Override
